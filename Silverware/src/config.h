@@ -114,11 +114,11 @@
 
 #define HEADLESSMODE CH_OFF
 // rates / expert mode
-#define RATES CH_OFF
+#define RATES CH_ON
 
-#define LEVELMODE CH_ON
+#define LEVELMODE CH_AUX1
 
-#define STARTFLIP CH_OFF
+#define STARTFLIP CH_FLIP
 
 #define LEDS_ON CH_ON
 
@@ -127,7 +127,11 @@
 //#define FPV_ON CH_ON
 
 // aux1 channel starts on if this is defined, otherwise off.
-//#define AUX1_START_ON
+#define AUX1_START_ON
+
+
+
+
 
 // improves reception and enables trims if used
 // trims are incompatible with DEVO TX when used
@@ -192,7 +196,7 @@
 
 // Flash saving features
 #define DISABLE_HEADLESS
-#define DISABLE_FLIP_SEQUENCER
+//#define DISABLE_FLIP_SEQUENCER
 
 // led brightness in-flight ( solid lights only)
 // 0- 15 range

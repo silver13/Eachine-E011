@@ -1,5 +1,3 @@
-Precompiled binaries for the bwhoop quad
+Precompiled binaries:
 
-
-bwhoop_default.hex - default config, gestures to switch acro / level, rate 360
-bwhoop_devo720.hex - intended for devo / module , ch6 ( devo ) switches acro / level, rate 720
+e011_factory_firmware.bin - original firmware which can be flashed back to the quad
