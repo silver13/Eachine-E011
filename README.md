@@ -12,8 +12,8 @@ The factory firmware can be flashed back after using this, it's in the bin folde
 ### Gestures
 The firmware uses "gestures" to activate certain features, currently accelerometer calibration, acro / level mode switch and pid gestures ( field tuning )
 
-Pid gestures:
-http://sirdomsen.diskstation.me/dokuwiki/doku.php?id=pidgesture
+Gestures reference:
+http://sirdomsen.diskstation.me/dokuwiki/doku.php?id=gestures
 
 ### Flashing the firmware
 Flashing instructions ( uses St-link Utility program ):
