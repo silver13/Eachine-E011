@@ -55,7 +55,7 @@ float pidkd[PIDNUMBER] = { 6.0e-1 , 6.0e-1 , 0e-1 };
 
 
 // "setpoint weighting" 0.0 - 1.0 where 0.0 = normal pid
-float b[3] = { 0.0 , 0.0 , 0.0};
+float b[3] = { 0.1 , 0.1 , 0.1};
 
 // output limit			
 const float outlimit[PIDNUMBER] = { 0.8 , 0.8 , 0.5 };
