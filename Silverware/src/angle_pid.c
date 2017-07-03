@@ -13,10 +13,10 @@
 
 // yaw is done by the rate yaw pid
 // Kp                       ROLL     PITCH  
-float apidkp[APIDNUMBER] = {7e-2, 7e-2 };
+float apidkp[APIDNUMBER] = {14e-2, 14e-2 };
 
 // Kd
-float apidkd[APIDNUMBER] = { 3.0e-2, 3.0e-2 }; //4
+float apidkd[APIDNUMBER] = { 10.0e-1, 10.0e-1 };
 
 // code variables below
 
@@ -30,7 +30,6 @@ extern int onground;
 extern float looptime;
 extern float gyro[3];
 
-//float aierror[APIDNUMBER] = { 0, 0};
 float apidoutput[APIDNUMBER];
 float angleerror[3];
 
@@ -39,8 +38,6 @@ float lasterror[APIDNUMBER];
 
 float apid(int x)
 {
-// int index = x;
-
 
 	// P term
 	apidoutput[x] = angleerror[x] * apidkp[x];
@@ -48,7 +45,7 @@ float apid(int x)
 
 extern float timefactor;
       
-    apidoutput[x] = apidoutput[x] - (angleerror[x] - lasterror[x]) * apidkd[x] * timefactor;
+    apidoutput[x] = apidoutput[x] + (angleerror[x] - lasterror[x]) * apidkd[x] * timefactor;
     lasterror[x] = angleerror[x];
 
 	limitf(&apidoutput[x], OUTLIMIT_FLOAT);
