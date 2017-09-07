@@ -33,6 +33,7 @@ THE SOFTWARE.
 #include "defines.h"
 #include "drv_time.h"
 #include "sixaxis.h"
+#include "drv_fmc2.h"
 #include "drv_fmc.h"
 #include "flip_sequencer.h"
 #include "gestures.h"
@@ -45,11 +46,12 @@ extern float gyro[3];
 extern int failsafe;
 extern float pidoutput[PIDNUMBER];
 
-extern float angleerror[3];
-extern float attitude[3];
+extern float angleerror[];
+extern float attitude[];
 
 int onground = 1;
 int onground_long = 1;
+int pid_gestures_used = 0;
 
 float thrsum;
 
@@ -139,114 +141,86 @@ float rate_multiplier = 1.0;
 	// check for accelerometer calibration command
 	if ( onground )
 	{
-		#ifdef GESTURES1_ENABLE
-		if ( rx[1] < -0.8  )
-		{
-			if ( !timecommand) timecommand = gettime();
-			if ( gettime() - timecommand > 3e6 )
-			{
-				// do command
-					
-			    gyro_cal();	// for flashing lights		
-			
-			    acc_cal();
-				  extern float accelcal[3];			  
-				  fmc_write( accelcal[0] + 127 , accelcal[1] + 127);
-
-			    // reset loop time so max loop time is not exceeding
-			    extern unsigned lastlooptime;
-			    lastlooptime = gettime();
-		      timecommand = 0;
-			}		
-		}
-		else timecommand = 0;	
-		#endif		
-		#ifdef GESTURES2_ENABLE
+		#ifndef DISABLE_GESTURES2
 		int command = gestures2();
 
-		if (command)
-	  {
-		  if (command == 3)
+		if (command!=GESTURE_NONE)
+        {
+            if (command == GESTURE_DDD)
 		    {
-			    gyro_cal();	// for flashing lights
-
-			    acc_cal();
-				  extern float accelcal[3];
-				  
-				  fmc_write( accelcal[0] + 127 , accelcal[1] + 127);
-
+			                  
+                //skip accel calibration if pid gestures used
+                if ( !pid_gestures_used )
+                {
+                    gyro_cal();	// for flashing lights
+                    acc_cal();                   
+                }
+                else
+                {
+                    ledcommand = 1;
+                    pid_gestures_used = 0;
+                }
+                #ifdef FLASH_SAVE2
+                extern float accelcal[3];
+                flash2_fmc_write( accelcal[0] + 127 , accelcal[1] + 127);
+                #endif
+                
+                #ifdef FLASH_SAVE1
+			    extern void flash_save( void);
+                extern void flash_load( void);
+                flash_save( );
+                flash_load( );
+                #endif
 			    // reset loop time 
-			    extern unsigned lastlooptime;
+			    extern unsigned long lastlooptime;
 			    lastlooptime = gettime();
-		    }
-		  else
-		    {
+		    }		
 
-			    if (command == 2)
-			      {
-				      aux[CH_AUX1] = 1;
+            if (command == GESTURE_RRD)
+              {
+                  aux[CH_AUX1] = 1;
+                  ledcommand = 1;
+              }
+            if (command == GESTURE_LLD)
+              {
+                  ledcommand = 1;
+                  aux[CH_AUX1] = 0;
+              }
+            #ifdef PID_GESTURE_TUNING              
+            if ( command >= GESTURE_UDR ) pid_gestures_used = 1;   
+              
+           // int blink = 0;
+            if (command == GESTURE_UDU)
+              {
+                        // Cycle to next pid term (P I D)
+                        ledblink = next_pid_term();
+              }
+            if (command == GESTURE_UDD)
+              {
+                        // Cycle to next axis (Roll Pitch Yaw)
+                        ledblink = next_pid_axis();
+              }
+            if (command == GESTURE_UDR)
+              {
+                  // Increase by 10%
+                        ledblink = increase_pid();
+              }
+            if (command == GESTURE_UDL)
+              {
+                        // Descrease by 10%
+                  ledblink = decrease_pid();
+              }
+                // U D U - Next PID term
+                // U D D - Next PID Axis
+                // U D R - Increase value
+                // U D L - Descrease value
+               // ledblink = blink; //Will cause led logic to blink the number of times ledblink has stored in it.
+                #endif
 
-				      ledcommand = 1;
-			      }
-			    if (command == 1)
-			      {
-				      ledcommand = 1;
-							aux[CH_AUX1] = 0;
-			      }
-					#ifdef PID_GESTURE_TUNING
-						
-					int blink = 0;
-			    if (command == 4)
-			      {
-							// Cycle to next pid term (P I D)
-							blink = next_pid_term();
-			      }
-			    if (command == 5)
-			      {
-							// Cycle to next axis (Roll Pitch Yaw)
-							blink = next_pid_axis();
-			      }
-			    if (command == 6)
-			      {
-				      // Increase by 10%
-							blink = increase_pid();
-			      }
-			    if (command == 7)
-			      {
-							// Descrease by 10%
-				      blink = decrease_pid();
-			      }
-					// U D U - Next PID term
-					// U D D - Next PID Axis
-					// U D R - Increase value
-					// U D L - Descrease value
-					ledblink = blink; //Will cause led logic to blink the number of times ledblink has stored in it.
-					#endif
-		    }
 	  }
 		#endif		
 	}
-#ifndef DISABLE_HEADLESS 
-// yaw angle for headless mode	
-	yawangle = yawangle + gyro[YAW]*looptime;
-	if ( auxchange[HEADLESSMODE] )
-	{
-		yawangle = 0;
-	}
-	
-	if ( aux[HEADLESSMODE] ) 
-	{
-		while (yawangle < -3.14159265f)
-            yawangle += 6.28318531f;
 
-        while (yawangle >  3.14159265f)
-            yawangle -= 6.28318531f;
-		
-		float temp = rxcopy[ROLL];
-		rxcopy[ROLL] = rxcopy[ROLL] * fastcos( yawangle) - rxcopy[PITCH] * fastsin(yawangle );
-		rxcopy[PITCH] = rxcopy[PITCH] * fastcos( yawangle) + temp * fastsin(yawangle ) ;
-	}
-#endif	
 
 pid_precalc();	
 
@@ -301,11 +275,9 @@ else throttle = (rx[3] - 0.1f)*1.11111111f;
 			#endif
 		}	
 		
-		#ifdef USE_PWM_DRIVER
 		#ifdef MOTOR_BEEPS
 		extern void motorbeep( void);
 		motorbeep();
-		#endif
 		#endif
 
 		#ifdef MIX_LOWER_THROTTLE
@@ -426,7 +398,19 @@ pidoutput[2] = -pidoutput[2];
 // we invert again cause it's used by the pid internally (for limit)
 pidoutput[2] = -pidoutput[2];			
 #endif
-	
+
+		for ( int i = 0 ; i <= 3 ; i++)
+		{			
+		#ifdef MOTOR_FILTER		
+		mix[i] = motorfilter(  mix[i] , i);
+		#endif	
+		
+        #ifdef MOTOR_FILTER2_ALPHA	
+        float motorlpf( float in , int x) ;           
+		mix[i] = motorlpf(  mix[i] , i);
+		#endif	
+        }
+
 
 #if ( defined MIX_LOWER_THROTTLE || defined MIX_INCREASE_THROTTLE)
 
@@ -547,14 +531,75 @@ overthrottle = 0.0f;
 		    }
 #endif				
 
+
+#ifdef MIX_LOWER_THROTTLE_3
+{
+#ifndef MIX_THROTTLE_REDUCTION_MAX
+#define MIX_THROTTLE_REDUCTION_MAX 0.5f
+#endif
+
+float overthrottle = 0;
+
+for (int i = 0; i < 4; i++)
+		    {
+			    if (mix[i] > overthrottle)
+				    overthrottle = mix[i];
+            }
+
+
+overthrottle -=1.0f;
+// limit to half throttle max reduction
+if ( overthrottle > (float) MIX_THROTTLE_REDUCTION_MAX)  overthrottle = (float) MIX_THROTTLE_REDUCTION_MAX;
+
+if ( overthrottle > 0.0f)
+{
+    for ( int i = 0 ; i < 4 ; i++)
+        mix[i] -= overthrottle;
+}
+#ifdef MIX_THROTTLE_FLASHLED
+if ( overthrottle > 0.1f) ledcommand = 1;
+#endif
+}
+#endif
+
+
+#ifdef MIX_INCREASE_THROTTLE_3
+{
+#ifndef MIX_THROTTLE_INCREASE_MAX
+#define MIX_THROTTLE_INCREASE_MAX 0.2f
+#endif
+
+float underthrottle = 0;
+
+for (int i = 0; i < 4; i++)
+    {
+        if (mix[i] < underthrottle)
+            underthrottle = mix[i];
+    }
+
+
+// limit to half throttle max reduction
+if ( underthrottle < -(float) MIX_THROTTLE_INCREASE_MAX)  underthrottle = -(float) MIX_THROTTLE_INCREASE_MAX;
+
+if ( underthrottle < 0.0f)
+    {
+        for ( int i = 0 ; i < 4 ; i++)
+            mix[i] -= underthrottle;
+    }
+#ifdef MIX_THROTTLE_FLASHLED
+if ( underthrottle < -0.01f) ledcommand = 1;
+#endif
+}
+#endif
+
+            
+            
+            
 thrsum = 0;		
 				
 		for ( int i = 0 ; i <= 3 ; i++)
 		{			
-		#ifdef MOTOR_FILTER		
-		mix[i] = motorfilter(  mix[i] , i);
-		#endif	
-			
+		           
 		#ifdef CLIP_FF
 		mix[i] = clip_ff(mix[i], i);
 		#endif
@@ -573,12 +618,6 @@ thrsum = 0;
 		}
 		#endif
 		
-		#ifdef MOTOR_MAX_ENABLE
-		if (mix[i] > (float) MOTOR_MAX_VALUE)
-		{
-			mix[i] = (float) MOTOR_MAX_VALUE;
-		}
-		#endif
 			
 		#ifndef NOMOTORS
 		#ifndef MOTORS_TO_THROTTLE
@@ -606,18 +645,19 @@ thrsum = 0;
    
     if (aux[LEVELMODE]&&!acro_override)
     {
-        // level mode calculations done after to save time
-        // the 1ms latency should not affect cascaded pids significantly
+        // level mode calculations done after to reduce latency
+        // the 1ms extra latency should not affect cascaded pids significantly
         
       	extern void stick_vector( float);
-		extern float errorvect[];					
-        extern float GEstG[3];
-        float yawerror[3];	
+		extern float errorvect[]; // level mode angle error calculated by stick_vector.c					
+        extern float GEstG[3]; // gravity vector for yaw feedforward
+        float yawerror[3] = {0}; // yaw rotation vector
 
-		stick_vector( 0 );
-        
-        float yawrate = rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;
-        
+        // calculate roll / pitch error
+		stick_vector( 0 ); 
+           
+        float yawrate = rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;            
+        // apply yaw from the top of the quad            
         yawerror[0] = GEstG[1] * yawrate;
         yawerror[1] = - GEstG[0] * yawrate;
         yawerror[2] = GEstG[2] * yawrate;
@@ -629,13 +669,28 @@ thrsum = 0;
 			{
 			error[i] = apid(i) + yawerror[i] - gyro[i];
 			}
-
+        // yaw
 		error[2] = yawerror[2]  - gyro[2];  
     }
     
 	
 }
 
+
+#ifndef MOTOR_FILTER2_ALPHA
+#define MOTOR_FILTER2_ALPHA 0.3
+#endif
+
+
+float motor_filt[4];
+
+float motorlpf( float in , int x)
+{
+    
+    lpf(&motor_filt[x] , in , 1 - MOTOR_FILTER2_ALPHA);
+       
+    return motor_filt[x];
+}
 
 
 float hann_lastsample[4];

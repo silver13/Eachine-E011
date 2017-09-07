@@ -49,6 +49,7 @@ THE SOFTWARE.
 #include "drv_softi2c.h"
 #include "drv_serial.h"
 #include "buzzer.h"
+#include "drv_fmc2.h"
 
 #include "binary.h"
 
@@ -56,6 +57,13 @@ THE SOFTWARE.
 #include <math.h>
 #include <inttypes.h>
 
+
+
+#ifdef __GNUC__
+#ifndef SOFT_LPF_NONE
+#warning the soft lpf may not work correctly with gcc due to longer loop time
+#endif
+#endif
 
 
 #ifdef DEBUG
@@ -69,8 +77,10 @@ debug_type debug;
 
 // hal
 void clk_init(void);
-
 void imu_init(void);
+extern void flash_load( void);
+extern void flash_hard_coded_pid_identifier(void);
+
 
 // looptime in seconds
 float looptime;
@@ -100,7 +110,7 @@ char auxchange[AUXNUMBER];
 extern int rxmode;
 // failsafe on / off
 extern int failsafe;
-
+extern float hardcoded_pid_identifier;
 
 // for led flash on gestures
 int ledcommand = 0;
@@ -143,15 +153,11 @@ clk_init();
 	
 	if ( sixaxis_check() ) 
 	{
-		#ifdef SERIAL_INFO	
-		printf( " MPU found \n" );
-		#endif
+		
 	}
 	else 
 	{
-		#ifdef SERIAL_INFO	
-		printf( "ERROR: MPU NOT FOUND \n" );	
-		#endif
+        //gyro not found   
 		failloop(4);
 	}
 	
@@ -184,7 +190,7 @@ while ( count < 64 )
 	
 #ifdef STOP_LOWBATTERY
 // infinite loop
-if ( vbattfilt < (float) STOP_LOWBATTERY_TRESH) failloop(2);
+if ( vbattfilt < (float) 3.3f) failloop(2);
 #endif
 
 
@@ -198,32 +204,28 @@ rgb_init();
 serial_init();
 #endif
 
-#ifdef SERIAL_INFO	
-		printf( "Vbatt %2.2f \n", vbattfilt );
-		#ifdef NOMOTORS
-    printf( "NO MOTORS\n" );
-		#warning "NO MOTORS"
-		#endif
-#endif
 
 
 	imu_init();
-	
+
+#ifdef FLASH_SAVE2
 // read accelerometer calibration values from option bytes ( 2* 8bit)
 extern float accelcal[3];
-extern int readdata( int datanumber);
+ accelcal[0] = flash2_readdata( OB->DATA0 ) - 127;
+ accelcal[1] = flash2_readdata( OB->DATA1 ) - 127;
+#endif
 
- accelcal[0] = readdata( OB->DATA0 ) - 127;
- accelcal[1] = readdata( OB->DATA1 ) - 127;
+#ifdef FLASH_SAVE1
+// read pid identifier for values in file pid.c
+    flash_hard_coded_pid_identifier();
 
+// load flash saved variables
+    flash_load( );
+#endif
 
-
-extern unsigned int liberror;
+extern int liberror;
 if ( liberror ) 
 {
-	  #ifdef SERIAL_INFO	
-		printf( "ERROR: I2C \n" );	
-		#endif
 		failloop(7);
 }
 
@@ -298,7 +300,7 @@ if ( liberror )
 
         static float vbattfilt_corr = 4.2;
         // li-ion battery model compensation time decay ( 3 sec )
-        lpf ( &vbattfilt_corr , vbattfilt , FILTERCALC( 1000 , 3000e3) );
+        lpf ( &vbattfilt_corr , vbattfilt , FILTERCALC( 1000 , 18000e3) );
 	
         lpf ( &vbattfilt , battadc , 0.9968f);
 
@@ -333,10 +335,10 @@ if( thrfilt > 0.1f )
 	//	y(n) = x(n) - x(n-1) + R * y(n-1) 
 	//  out = in - lastin + coeff*lastout
 		// hpf
-	 ans = vcomp[z] - lastin[z] + FILTERCALC( 1000*12 , 1000e3) *lastout[z];
+	 ans = vcomp[z] - lastin[z] + FILTERCALC( 1000*12 , 6000e3) *lastout[z];
 		lastin[z] = vcomp[z];
 		lastout[z] = ans;
-	 lpf ( &score[z] , ans*ans , FILTERCALC( 1000*12 , 10e6 ) );	
+	 lpf ( &score[z] , ans*ans , FILTERCALC( 1000*12 , 60e6 ) );	
 	z++;
     
 	if ( z >= 12 ) z = 0;
@@ -367,7 +369,7 @@ if( thrfilt > 0.1f )
 		else hyst = 0.0f;
 
 		if (( tempvolt + (float) VDROP_FACTOR * thrfilt <(float) VBATTLOW + hyst )
-            || ( vbattfilt < ( float ) VBATTLOW_MIN ) )
+            || ( vbattfilt < ( float ) 2.7f ) )
             lowbatt = 1;
 		else lowbatt = 0;
 
@@ -396,7 +398,7 @@ else
 				}
 			else 
 			{
-				#ifdef GESTURES2_ENABLE
+			
 				if (ledcommand)
 						  {
 							  if (!ledcommandtime)
@@ -408,6 +410,7 @@ else
 							    }
 							  ledflash(100000, 8);
 						  }
+               	#ifndef DISABLE_GESTURES2
 						else if (ledblink)
 						{
 							if (!ledcommandtime)
@@ -417,7 +420,7 @@ else
 								    ledblink--;
 								    ledcommandtime = 0;
 							    }
-							ledflash(500000, 1);
+							ledflash(500000, 3);
 						}
 						else
 					#endif // end gesture led flash

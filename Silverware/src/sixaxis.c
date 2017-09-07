@@ -458,10 +458,7 @@ if ( time - timestart < CAL_TIME )
 	
 }
 
-	
-#ifdef SERIAL_INFO	
-printf("gyro calibration  %f %f %f \n "   , gyrocal[0] , gyrocal[1] , gyrocal[2]);
-#endif
+
 	
 }
 
@@ -481,12 +478,19 @@ void acc_cal(void)
 	  }
 	accelcal[2] -= 2048;
 
-
+#ifdef FLASH_SAVE2
 	for (int x = 0; x < 3; x++)
 	  {
 		  limitf(&accelcal[x], 127);
 	  }
-
+#endif
+      
+#ifdef FLASH_SAVE1
+	for (int x = 0; x < 3; x++)
+	  {
+		  limitf(&accelcal[x], 500);
+	  }
+#endif
 }
 
 

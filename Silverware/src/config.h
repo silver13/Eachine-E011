@@ -19,10 +19,10 @@
 
 // use if your tx has no expo function
 // also comment out DISABLE_EXPO to use
-// -1 to 1 , 0 = no exp
+// 0.00 to 1.00 , 0 = no exp
 // positive = less sensitive near center 
 #define EXPO_XY 0.3
-#define EXPO_YAW 0.0
+#define EXPO_YAW 0.3
 
 
 
@@ -31,16 +31,9 @@
 // flashes 2 times repeatedly at startup
 //#define STOP_LOWBATTERY
 
-// under this voltage the software will not start 
-// if STOP_LOWBATTERY is defined above
-#define STOP_LOWBATTERY_TRESH 3.3
-
 // voltage to start warning
 // volts
 #define VBATTLOW 3.5
-
-// lvc starts flashing under this raw value regardless of throttle
-#define VBATTLOW_MIN 2.7
 
 // compensation for battery voltage vs throttle drop
 #define VDROP_FACTOR 0.7
@@ -79,10 +72,12 @@
 //#define SOFT_LPF_1ST_043HZ
 //#define SOFT_LPF_1ST_100HZ
 //#define SOFT_LPF_2ND_043HZ
-#define SOFT_LPF_2ND_088HZ
+//#define SOFT_LPF_2ND_088HZ
 //#define SOFT_LPF_4TH_088HZ
 //#define SOFT_LPF_4TH_160HZ
 //#define SOFT_LPF_4TH_250HZ
+#define SOFT_LPF_1ST_HZ 100
+//#define SOFT_LPF_2ST_HZ 100
 //#define SOFT_LPF_NONE
 
 
@@ -95,14 +90,6 @@
 // CH_EXPERT , CH_INV (inv h101 tx)
 // CH_RLL_TRIM , CH_PIT_TRIM - trim buttons pitch, roll
 
-// cg023 protocol chanels
-// CH_CG023_FLIP , CH_CG023_VIDEO , CH_CG023_STILL , CH_CG023_LED
-
-// H7 channels
-// CH_H7_FLIP , CH_H7_VIDEO , CH_H7_FS
-
-// CX10
-// CH_CX10_CH0  (unknown) , CH_CX10_CH2 ( rates mid)
 
 // DEVO channels (bayang protocol)
 // DEVO_CHAN_5 - DEVO_CHAN_10
@@ -112,9 +99,8 @@
 // CH_ON - on always ( all protocols)
 // CH_OFF - off always ( all protocols)
 
-#define HEADLESSMODE CH_OFF
 // rates / expert mode
-#define RATES CH_ON
+#define RATES CH_EXPERT
 
 #define LEVELMODE CH_AUX1
 
@@ -129,10 +115,6 @@
 // aux1 channel starts on if this is defined, otherwise off.
 #define AUX1_START_ON
 
-
-
-
-
 // improves reception and enables trims if used
 // trims are incompatible with DEVO TX when used
 //#define USE_STOCK_TX
@@ -140,13 +122,11 @@
 // automatically remove center bias ( needs throttle off for 1 second )
 //#define STOCK_TX_AUTOCENTER
 
-// Gestures enable ( gestures 1 = acc only)
-//#define GESTURES1_ENABLE
-#define GESTURES2_ENABLE
-
-// enable motor filter
-// hanning 3 sample fir filter
-#define MOTOR_FILTER
+// enable motor filter - select one
+// motorfilter1: hanning 3 sample fir filter
+// motorfilter2: 1st lpf, 0.2 - 0.6 , 0.6 = less filtering
+//#define MOTOR_FILTER
+#define MOTOR_FILTER2_ALPHA 0.3
 
 // clip feedforward attempts to resolve issues that occur near full throttle
 //#define CLIP_FF
@@ -166,6 +146,7 @@
 //#define BOLDCLASH_716MM_8K
 //#define BOLDCLASH_716MM_24K
 
+// a filter which makes throttle feel faster
 //#define THROTTLE_TRANSIENT_COMPENSATION
 
 // lost quad beeps using motors (30 sec timeout)
@@ -176,9 +157,13 @@
 //#define AUTO_THROTTLE
 
 // enable auto lower throttle near max throttle to keep control
+// mix3 works better with brushless
 // comment out to disable
 //#define MIX_LOWER_THROTTLE
 //#define MIX_INCREASE_THROTTLE
+
+//#define MIX_LOWER_THROTTLE_3
+//#define MIX_INCREASE_THROTTLE_3
 
 // Radio protocol selection
 // select only one
@@ -195,8 +180,8 @@
 
 
 // Flash saving features
-#define DISABLE_HEADLESS
 //#define DISABLE_FLIP_SEQUENCER
+//#define DISABLE_GESTURES2
 
 // led brightness in-flight ( solid lights only)
 // 0- 15 range
@@ -212,20 +197,22 @@
 #define PID_GESTURE_TUNING
 #define COMBINE_PITCH_ROLL_PID_TUNING
 
+// flash save method
+// flash_save 1: pids + accel calibration
+// flash_save 2: accel calibration to option bytes
+#define FLASH_SAVE1
+//#define FLASH_SAVE2
+
+
+
+
+
 
 
 
 //##################################
 // debug / other things
 // this should not be usually changed
-
-
-
-// enable serial driver ( pin SWCLK after calibration) 
-// WILL DISABLE PROGRAMMING AFTER GYRO CALIBRATION - 2 - 3 seconds after powerup)
-//#define SERIAL_ENABLE
-// enable some serial info output
-//#define SERIAL_INFO
 
 
 // level mode "manual" trims ( in degrees)
@@ -271,12 +258,9 @@
 
 
 // limit minimum motor output to a value (0.0 - 1.0)
-#define MOTOR_MIN_ENABLE
+//#define MOTOR_MIN_ENABLE
 #define MOTOR_MIN_VALUE 0.05
 
-// limit max motor output to a value (0.0 - 1.0)
-//#define MOTOR_MAX_ENABLE
-#define MOTOR_MAX_VALUE 1.0
 
 
 
@@ -309,13 +293,18 @@
 #endif
 
 
-//needed for rssi
-//#ifdef OSD_LTM_PROTOCOL
-//#define RXDEBUG
-//#endif
-
 
 // for the ble beacon to work after in-flight reset
 #ifdef RX_BAYANG_PROTOCOL_BLE_BEACON
 #undef STOP_LOWBATTERY
 #endif
+
+
+#ifdef __GNUC__
+#ifndef DISABLE_FLIP_SEQUENCER
+#define DISABLE_FLIP_SEQUENCER
+#warning DISABLE_FLIP_SEQUENCER added to save flash
+#endif
+#endif
+
+

@@ -51,11 +51,12 @@ float pidki[PIDNUMBER] = { 6.0e-1 , 6.0e-1 , 3e-1 };
 float pidkd[PIDNUMBER] = { 6.0e-1 , 6.0e-1 , 0e-1 };
 
 
+// "setpoint weighting" 0.0 - 1.0 where 1.0 = normal pid
+// #define ENABLE_SETPOINT_WEIGHTING
+float b[3] = { 1.0 , 1.0 , 1.0};
 
 
 
-// "setpoint weighting" 0.0 - 1.0 where 0.0 = normal pid
-float b[3] = { 0.1 , 0.1 , 0.1};
 
 // output limit			
 const float outlimit[PIDNUMBER] = { 0.8 , 0.8 , 0.5 };
@@ -67,6 +68,7 @@ const float integrallimit[PIDNUMBER] = { 0.8 , 0.8 , 0.5 };
 
 
 // non changable things below
+float * pids_array[3] = {pidkp, pidki, pidkd};
 
 int number_of_increments[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 int current_pid_axis = 0;
@@ -149,13 +151,14 @@ int next_pid_term()
 // The return value is used to blink the leds in main.c
 int next_pid_axis()
 {
-	int size = 3;
+	const int size = 3;
 	if (current_pid_axis == size - 1) {
 		current_pid_axis = 0;
 	}
 	else {
 		#ifdef COMBINE_PITCH_ROLL_PID_TUNING
-		if (current_pid_axis == 0) {
+		if (current_pid_axis <2 ) {
+			// Skip axis == 1 which is roll, and go directly to 2 (Yaw)
 			current_pid_axis = 2;
 		}
 		#else
@@ -175,17 +178,17 @@ int change_pid_value(int increase)
 		multiplier = (float)PID_GESTURES_MULTI;
 		number_of_increments[current_pid_term][current_pid_axis]++;
 		#ifdef COMBINE_PITCH_ROLL_PID_TUNING
-		if (current_pid_axis == 0) {
-			number_of_increments[current_pid_term][current_pid_axis+1]++;	
-		}
+		//if (current_pid_axis == 0) {
+		//	number_of_increments[current_pid_term][current_pid_axis+1]++;	
+		//}
 		#endif
 	}
 	else {
 		number_of_increments[current_pid_term][current_pid_axis]--;
 		#ifdef COMBINE_PITCH_ROLL_PID_TUNING
-		if (current_pid_axis == 0) {
-			number_of_increments[current_pid_term][current_pid_axis+1]--;	
-		}
+		//if (current_pid_axis == 0) {
+		//	number_of_increments[current_pid_term][current_pid_axis+1]--;	
+		//}
 		#endif
 	}
 	current_pid_term_pointer[current_pid_axis] = current_pid_term_pointer[current_pid_axis] * multiplier;
@@ -257,12 +260,16 @@ float pid(int x )
 				
 				limitf( &ierror[x] , integrallimit[x] );
 				
+				
+                #ifdef ENABLE_SETPOINT_WEIGHTING
 				// P term
-                pidoutput[x] = error[x] * ( 1 - b[x])* pidkp[x] ;
-				
+                pidoutput[x] = error[x] * ( b[x])* pidkp[x];				
 				// b
-                pidoutput[x] +=  - ( b[x])* pidkp[x] * gyro[x]  ;
-				
+                pidoutput[x] +=  - ( 1.0f - b[x])* pidkp[x] * gyro[x];
+				#else
+                // P term with b disabled
+                pidoutput[x] = error[x] * pidkp[x];
+                #endif
 				
 				// I term	
 				pidoutput[x] += ierror[x];

@@ -3,50 +3,54 @@
 #include "project.h"
 #include "drv_fmc.h"
 
+// address 32768 - 1024 = 31k - last flash block
+#define FLASH_ADDR 0x08007C00
 
-int fmc_write( int data1 , int data2)
+extern void failloop( int);
+
+// address 0 - 255 ( for current block FLASH_ADDR )
+// value 32 bit to write
+void writeword( unsigned long address, unsigned long value)
 {
-	
-    FLASH_Unlock();
-    FLASH_OB_Unlock();
+	int test = FLASH_ProgramWord( FLASH_ADDR + (address<<2), value);	
+	if ( test != FLASH_COMPLETE )
+	{
+		FLASH_Lock();
+		failloop(5);
+	}
+}
 
-	
-  FLASH_OB_Erase();
-//	
-//	if ( flashstatus == FLASH_ERROR_PROGRAM || flashstatus == FLASH_ERROR_WRP || flashstatus ==  FLASH_TIMEOUT)
-//	{
-//	//	handle error
-//	flasherror = 1;	
-//	}
-	
-	FLASH_OB_ProgramData( 0x1FFFF804, data1 );
+void fmc_write_float(unsigned long address, float float_to_write) {
+	writeword(address, *(unsigned long *) &float_to_write);
+}
 
+float fmc_read_float(unsigned long address) {
+	unsigned long result = fmc_read(address);
+	return *(float*)&result;
+}
 
-	FLASH_OB_ProgramData( 0x1FFFF806, data2 );
+void fmc_unlock() {
+	FLASH_Unlock();
+}
 
-	
+void fmc_lock() {
 	FLASH_Lock();
-	FLASH_OB_Lock();
-	
-	return 0;
 }
 
+int fmc_erase( void )
+{	
+	int test = FLASH_ErasePage( FLASH_ADDR );
+	if ( test != FLASH_COMPLETE ) FLASH_Lock();
+    else return 0;
+	return 1;// error occured
+}
 
-// x = readdata( OB->DATA0 );
-// x = readdata( OB->DATA1 );
-	
-int readdata( unsigned int data )
+// reads 32 bit value
+unsigned long fmc_read(unsigned long address)
 {
-	// checks that data and ~data are valid
-	unsigned int userdata = data ;
-	int complement = ((userdata &0x0000FF00)>>8 );
-	complement |=0xFFFFFF00;
-
-	userdata&=0x000000FF;
-	
-	if ( userdata!=~complement) 
-		return 127;
-	
-	else return userdata;
+	address = address * 4 + FLASH_ADDR;
+	unsigned int *addressptr = (unsigned int *)address;
+	return (*addressptr);
 }
+
 

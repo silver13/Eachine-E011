@@ -503,6 +503,11 @@
               <FilePath>.\src\rx_cx10blue_protocol.c</FilePath>
             </File>
             <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\flash.c</FilePath>
+            </File>
+            <File>
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\led.c</FilePath>
@@ -596,6 +601,11 @@
               <FileName>drv_fmc1.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drv_fmc1.c</FilePath>
+            </File>
+            <File>
+              <FileName>drv_fmc2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drv_fmc2.c</FilePath>
             </File>
             <File>
               <FileName>drv_gpio.c</FileName>
