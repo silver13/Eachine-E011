@@ -174,6 +174,7 @@
 //#define RX_BAYANG_PROTOCOL_BLE_BEACON
 //#define RX_BAYANG_BLE_APP
 //#define RX_CX10BLUE_PROTOCOL
+//#define RX_SBUS
 
 // 0 - 7 - power for telemetry
 #define TX_POWER 4
@@ -188,7 +189,7 @@
 #define LED_BRIGHTNESS 15
 
 
-
+// external buzzer - pins in hardware.h
 //#define BUZZER_ENABLE
 
 
@@ -300,11 +301,4 @@
 #endif
 
 
-#ifdef __GNUC__
-#ifndef DISABLE_FLIP_SEQUENCER
-#define DISABLE_FLIP_SEQUENCER
-#warning DISABLE_FLIP_SEQUENCER added to save flash
-#endif
-#endif
-
-
+// gcc warnings in main.c

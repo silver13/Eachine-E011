@@ -317,9 +317,12 @@ else throttle = (rx[3] - 0.1f)*1.11111111f;
 
 #ifdef 	THROTTLE_TRANSIENT_COMPENSATION
         
+#ifndef THROTTLE_TRANSIENT_COMPENSATION_FACTOR 
+ #define THROTTLE_TRANSIENT_COMPENSATION_FACTOR 7.0 
+#endif        
 extern float throttlehpf( float in );
         
-		  throttle += 7.0f * throttlehpf(throttle);
+		  throttle += (float) (THROTTLE_TRANSIENT_COMPENSATION_FACTOR) * throttlehpf(throttle);
 		  if (throttle < 0)
 			  throttle = 0;
 		  if (throttle > 1.0f)
@@ -648,25 +651,24 @@ thrsum = 0;
         // level mode calculations done after to reduce latency
         // the 1ms extra latency should not affect cascaded pids significantly
         
-      	extern void stick_vector( float);
+      	extern void stick_vector( float rx_input[] , float maxangle);
 		extern float errorvect[]; // level mode angle error calculated by stick_vector.c					
         extern float GEstG[3]; // gravity vector for yaw feedforward
         float yawerror[3] = {0}; // yaw rotation vector
 
         // calculate roll / pitch error
-		stick_vector( 0 ); 
+		stick_vector( rxcopy , 0 ); 
            
         float yawrate = rxcopy[2] * (float) MAX_RATEYAW * DEGTORAD;            
         // apply yaw from the top of the quad            
         yawerror[0] = GEstG[1] * yawrate;
         yawerror[1] = - GEstG[0] * yawrate;
         yawerror[2] = GEstG[2] * yawrate;
-        
-        for ( int i = 0 ; i <=1; i++)		
-           lpf( &angleerror[i] , errorvect[i]* RADTODEG , FILTERCALC( 1000 , 20000) );
-   
-		for ( int i = 0 ; i <2; i++)
+
+        // pitch and roll
+		for ( int i = 0 ; i <=1; i++)
 			{
+            angleerror[i] = errorvect[i]* RADTODEG ;    
 			error[i] = apid(i) + yawerror[i] - gyro[i];
 			}
         // yaw

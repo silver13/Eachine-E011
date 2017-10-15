@@ -31,8 +31,7 @@ extern float looptime;
 extern float gyro[3];
 
 float apidoutput[APIDNUMBER];
-float angleerror[3];
-
+float angleerror[APIDNUMBER];
 
 float lasterror[APIDNUMBER];
 

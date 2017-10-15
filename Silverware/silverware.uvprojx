@@ -48,7 +48,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>.\Objects\</OutputDirectory>
-          <OutputName>_e011</OutputName>
+          <OutputName>bwhoop</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -273,7 +273,7 @@
               <OCR_RVCT4>
                 <Type>1</Type>
                 <StartAddress>0x8000000</StartAddress>
-                <Size>0x4000</Size>
+                <Size>0x8000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -414,9 +414,9 @@
                 <useXO>2</useXO>
                 <v6Lang>0</v6Lang>
                 <v6LangP>0</v6LangP>
-                <vShortEn>0</vShortEn>
-                <vShortWch>0</vShortWch>
-                <v6Lto>2</v6Lto>
+                <vShortEn>2</vShortEn>
+                <vShortWch>2</vShortWch>
+                <v6Lto>0</v6Lto>
                 <v6WtE>2</v6WtE>
                 <v6Rtti>2</v6Rtti>
                 <VariousControls>
@@ -463,6 +463,11 @@
               <FilePath>.\src\buzzer.c</FilePath>
             </File>
             <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\flash.c</FilePath>
+            </File>
+            <File>
               <FileName>gestures.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\gestures.c</FilePath>
@@ -503,9 +508,9 @@
               <FilePath>.\src\rx_cx10blue_protocol.c</FilePath>
             </File>
             <File>
-              <FileName>flash.c</FileName>
+              <FileName>rx_sbus.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\flash.c</FilePath>
+              <FilePath>.\src\rx_sbus.c</FilePath>
             </File>
             <File>
               <FileName>led.c</FileName>
