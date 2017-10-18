@@ -58,11 +58,14 @@
 #define USE_SOFTWARE_I2C
 //#define USE_DUMMY_I2C
 
+// for boards without a SCL pullup - E011 ( nonstandard i2c )
+#define SOFTI2C_PUSHPULL_CLK
+
 // I2C speed: fast = no delays 
 // slow1 = for i2c without pull-up resistors
 // slow2 = i2c failsafe speed
-//#define SOFTI2C_SPEED_FAST
-#define SOFTI2C_SPEED_SLOW1
+#define SOFTI2C_SPEED_FAST
+//#define SOFTI2C_SPEED_SLOW1
 //#define SOFTI2C_SPEED_SLOW2
 
 // hardware i2c speed ( 1000, 400 , 200 , 100Khz)
