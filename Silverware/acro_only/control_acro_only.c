@@ -115,6 +115,18 @@ float rate_multiplier = 1.0;
 		#else
 		rxcopy[i] = rx[i] * rate_multiplier;
 		#endif
+
+		#ifdef STICKS_DEADBAND
+		if ( fabsf( rxcopy[ i ] ) <= STICKS_DEADBAND ) {
+			rxcopy[ i ] = 0.0f;
+		} else {
+			if ( rxcopy[ i ] >= 0 ) {
+				rxcopy[ i ] = mapf( rxcopy[ i ], STICKS_DEADBAND, 1, 0, 1 );
+			} else {
+				rxcopy[ i ] = mapf( rxcopy[ i ], -STICKS_DEADBAND, -1, 0, -1 );
+			}
+		}
+		#endif
 	}
 
 
@@ -231,10 +243,15 @@ pid_precalc();
 
 float	throttle;
 
+#ifndef IDLE_UP
 // map throttle so under 10% it is zero	
 if ( rx[3] < 0.1f ) throttle = 0;
 else throttle = (rx[3] - 0.1f)*1.11111111f;
-
+#else
+// check if IDLE_UP switch is on
+if (!aux[IDLE_UP]) throttle = 0;
+else throttle =  (float) IDLE_THR + rx[3] * (1.0f - (float) IDLE_THR);
+#endif
 
 // turn motors off if throttle is off and pitch / roll sticks are centered
 	if ( failsafe || (throttle < 0.001f && (!ENABLESTIX || !onground_long || (fabsf(rx[ROLL]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[PITCH]) < (float) ENABLESTIX_TRESHOLD && fabsf(rx[YAW]) < (float) ENABLESTIX_TRESHOLD ) ) ) ) 
