@@ -13,10 +13,10 @@
 
 // yaw is done by the rate yaw pid
 // Kp                       ROLL     PITCH  
-float apidkp[APIDNUMBER] = {14e-2, 14e-2 };
+float apidkp[APIDNUMBER] = {11e-2, 11e-2 };
 
 // Kd
-float apidkd[APIDNUMBER] = { 10.0e-1, 10.0e-1 };
+float apidkd[APIDNUMBER] = { 0.0e-1, 0.0e-1 };
 
 // code variables below
 
