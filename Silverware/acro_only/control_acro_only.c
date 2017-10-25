@@ -147,17 +147,14 @@ float rate_multiplier = 1.0;
                 if ( !pid_gestures_used )
                 {
                     gyro_cal();	// for flashing lights
-                    acc_cal();                   
+                    //acc_cal();                   
                 }
                 else
                 {
                     ledcommand = 1;
                     pid_gestures_used = 0;
                 }
-                #ifdef FLASH_SAVE2
-                extern float accelcal[3];
-                flash2_fmc_write( accelcal[0] + 127 , accelcal[1] + 127);
-                #endif
+               
                 
                 #ifdef FLASH_SAVE1
 			    extern void flash_save( void);
@@ -330,27 +327,7 @@ extern float throttlehpf( float in );
 		
 		
 	
-		  // throttle angle compensation
-#ifdef AUTO_THROTTLE
-		  if (aux[LEVELMODE])
-		    {
-			    //float autothrottle = fastcos(attitude[0] * DEGTORAD) * fastcos(attitude[1] * DEGTORAD);
-			    extern float GEstG[];
-				float autothrottle = GEstG[2];
-				float old_throttle = throttle;
-			    if (autothrottle <= 0.5f)
-				    autothrottle = 0.5f;
-			    throttle = throttle / autothrottle;
-			    // limit to 90%
-			    if (old_throttle < 0.9f)
-				    if (throttle > 0.9f)
-					    throttle = 0.9f;
 
-			    if (throttle > 1.0f)
-				    throttle = 1.0f;
-
-		    }
-#endif
 	
 
 

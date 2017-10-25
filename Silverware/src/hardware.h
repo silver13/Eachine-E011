@@ -69,8 +69,8 @@
 //#define SOFTI2C_SPEED_SLOW2
 
 // hardware i2c speed ( 1000, 400 , 200 , 100Khz)
-#define HW_I2C_SPEED_FAST2
-//#define HW_I2C_SPEED_FAST
+//#define HW_I2C_SPEED_FAST2
+#define HW_I2C_SPEED_FAST
 //#define HW_I2C_SPEED_SLOW1
 //#define HW_I2C_SPEED_SLOW2
 

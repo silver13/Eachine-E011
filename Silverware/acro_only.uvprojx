@@ -448,11 +448,6 @@
           </GroupOption>
           <Files>
             <File>
-              <FileName>config.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\acro_only\config.h</FilePath>
-            </File>
-            <File>
               <FileName>pid_acro_only.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\acro_only\pid_acro_only.c</FilePath>
@@ -558,19 +553,14 @@
               <FilePath>.\src\imu.c</FilePath>
             </File>
             <File>
-              <FileName>flip_sequencer.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\flip_sequencer.c</FilePath>
-            </File>
-            <File>
               <FileName>filter.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\src\filter.cpp</FilePath>
             </File>
             <File>
-              <FileName>angle_pid.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\angle_pid.c</FilePath>
+              <FileName>config.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\config.h</FilePath>
             </File>
             <File>
               <FileName>defines.h</FileName>

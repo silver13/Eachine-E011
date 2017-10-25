@@ -21,8 +21,8 @@
 // also comment out DISABLE_EXPO to use
 // 0.00 to 1.00 , 0 = no exp
 // positive = less sensitive near center 
-#define EXPO_XY 0.3
-#define EXPO_YAW 0.3
+#define EXPO_XY 0.65
+#define EXPO_YAW 0.5
 
 
 
