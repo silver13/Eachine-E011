@@ -2,7 +2,7 @@
 
 ### E011 Alternate Firmware
 
-The board pads are reverse labeled. The 4 connector is *correctly* labeled.
+The board pads ( near the middle ) are reverse labeled. The 4 pin connector is *correctly* labeled.
 
 Thanks to rcg user "NotfastEnough" for figuring out the hardware connctions
 
