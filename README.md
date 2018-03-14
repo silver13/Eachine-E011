@@ -2,6 +2,8 @@
 
 ### E011 Alternate Firmware
 
+* *Note, santa version uses bwhoop pro code*
+
 The board pads ( near the middle ) are *reverse* labeled. The 4 pin connector is *correctly* labeled.
 
 Thanks to rcg user "NotfastEnough" for figuring out the hardware connctions
